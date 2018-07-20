@@ -1,6 +1,10 @@
 var db = require("../models");
 
 module.exports = function (app) {
+    app.get("/", function(req, res) {
+        res.render("index");
+    });
+
     // A GET route for scraping the nhl.com website
     app.get("/scrape", function (req, res) {
         request("https://www.nhl.com/", function (error, response, html) {
