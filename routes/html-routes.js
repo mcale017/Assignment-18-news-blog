@@ -33,6 +33,8 @@ module.exports = function (app) {
             }).catch(function (err) {
                 // If an error occurred, send it to the client
                 return res.json(err);
+            }).then(function(dbArticle) {
+                res.render("article", dbBook);
             });
         });
     });
