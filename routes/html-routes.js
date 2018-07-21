@@ -1,5 +1,6 @@
 var db = require("../models");
 var cheerio = require("cheerio");
+var request = require("request");
 
 module.exports = function (app) {
     app.get("/", function(req, res) {
@@ -32,7 +33,7 @@ module.exports = function (app) {
             });
 
             // Create a new Article using the `result` object built from scraping
-            db.Article.create(result).then(function (dbArticle) {
+            db.Article.create(results).then(function (dbArticle) {
                 // View the added result in the console
                 console.log(dbArticle);
             }).catch(function (err) {
