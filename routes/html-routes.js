@@ -41,7 +41,7 @@ module.exports = function (app) {
                 return res.json(err);
             });
 
-            res.render("article");
+            res.json(results);
         });
     });
 };
