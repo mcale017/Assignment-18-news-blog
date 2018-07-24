@@ -3,7 +3,7 @@ var cheerio = require("cheerio");
 var request = require("request");
 
 module.exports = function (app) {
-    app.get("/", function(req, res) {
+    app.get("/", function (req, res) {
         res.render("index");
     });
 
@@ -32,14 +32,31 @@ module.exports = function (app) {
                 });
             });
 
-            // Create a new Article using the `result` object built from scraping
-            db.Article.create(results).then(function (dbArticle) {
-                // View the added result in the console
+            // console.log(results);
+
+            var oldResults = [];
+
+            db.Article.find().then(function (dbArticle) {
                 console.log(dbArticle);
-            }).catch(function (err) {
-                // If an error occurred, send it to the client
-                return res.json(err);
+                oldResults.push(dbArticle);
+
+                // Create a new Article using the `result` object built from scraping
+                db.Article.update(
+                    oldResults,
+                    results,
+                    {
+                        upsert: true
+                    }
+                ).then(function (dbArticle2) {
+                    // View the added result in the console
+                    // console.log(dbArticle2);
+                }).catch(function (err) {
+                    // If an error occurred, send it to the client
+                    return res.json(err);
+                });
             });
+
+
 
             res.render("article");
         });
