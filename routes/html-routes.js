@@ -3,12 +3,8 @@ var cheerio = require("cheerio");
 var request = require("request");
 
 module.exports = function (app) {
-    app.get("/", function(req, res) {
-        res.render("index");
-    });
-
-    // A GET route for scraping the nhl.com website
-    app.get("/scrape", function (req, res) {
+    // A GET route for home page that also scraps the nhl.com website
+    app.get("/", function (req, res) {
         request("https://www.nhl.com/", function (error, response, html) {
             // Load the body of the HTML into cheerio
             var $ = cheerio.load(html);
@@ -33,19 +29,20 @@ module.exports = function (app) {
                     link: link
                 });
 
-                current = [
-                    { title: title},
-                    { link: link}
-                ]
+                current = {
+                    title: title,
+                    link: link
+                }
 
                 db.Article.update(
                     { title: current.title },
-                    { $set : { 'title' : current.title, 'link' : current.link } },
-                    { upsert: true, multi: true }
+                    { $set : { title : current.title, link : current.link } },
+                    { upsert: true, multi: true },
+                    function(){}
                 );
             });
 
-            res.json(results);
+            res.render("index");
         });
     });
 };
