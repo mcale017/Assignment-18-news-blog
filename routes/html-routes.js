@@ -38,11 +38,23 @@ module.exports = function (app) {
                     { title: current.title },
                     { $set : { title : current.title, link : current.link } },
                     { upsert: true, multi: true },
-                    function(){}
+                    function(err, inserted) {
+                        if (err) {
+                            console.log(err);
+                        } else {
+                            console.log(inserted);
+                        };
+                    }
                 );
             });
-
-            res.render("index");
         });
+
+        res.render("index");
     });
+
+    app.get("/articles", function(req, res) {
+        db.Article.find().then(function(dbArticle) {
+            res.render("article", { articleObject: dbArticle });
+        })
+    })
 };
