@@ -43,6 +43,8 @@ module.exports = function (app) {
                             console.log(err);
                         } else {
                             console.log(inserted);
+
+                            // if inserted.upserted !== null, then count++
                         };
                     }
                 );
