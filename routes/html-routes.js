@@ -4,18 +4,18 @@ var request = require("request");
 
 module.exports = function (app) {
     // A GET route for home page that also scraps the nhl.com website
-    app.get("/", function (req, res) {
+    app.get("/scrape", function (req, res) {
+        var count = 0;
+
         request("https://www.nhl.com/", function (error, response, html) {
             // Load the body of the HTML into cheerio
             var $ = cheerio.load(html);
 
             // Empty array to save our scraped data
-            var results = [];
-
-            var current = [];
+            var result = [];
 
             // With cheerio, find each h4-tag with the class "headline-link" and loop through the results
-            $("h4.headline-link").each(function (i, element) {
+            const articles = $("h4.headline-link").map(function (i, element) {
 
                 // Save the text of the h4-tag as "title"
                 var title = $(element).text();
@@ -23,39 +23,41 @@ module.exports = function (app) {
                 // Find the h4 tag's parent a-tag, and save it's href value as "link"
                 var link = $(element).parent().attr("href");
 
-                // Make an object with data we scraped for this h4 and push it to the results array
-                results.push({
-                    title: title,
-                    link: link
-                });
-
-                current = {
+                result = {
                     title: title,
                     link: link
                 }
 
-                db.Article.update(
-                    { title: current.title },
-                    { $set : { title : current.title, link : current.link } },
-                    { upsert: true, multi: true },
-                    function(err, inserted) {
-                        if (err) {
-                            console.log(err);
-                        } else {
-                            console.log(inserted);
+                return new Promise((resolve, reject) => {
+                    db.Article.update(
+                        { title: result.title },
+                        { $set: { title: result.title, link: result.link } },
+                        { upsert: true, multi: true },
+                        function (err, inserted) {
+                            if (err) {
+                                console.log(err);
+                                reject(err);
+                            } else {
+                                if (inserted.upserted) {
+                                    count++;
+                                    console.log("Upserted " + count);
+                                };
+                                resolve();
+                            };
+                        }
+                    );
+                });
+            // turn cheerios objects into arrays
+            }).toArray();
 
-                            // if inserted.upserted !== null, then count++
-                        };
-                    }
-                );
-            });
+            Promise.all(articles).then(() => {
+                res.render("scrape", { articleCount: count });
+            }).catch(err => console.log('Error: ', err));
         });
-
-        res.render("index");
     });
 
-    app.get("/articles", function(req, res) {
-        db.Article.find().then(function(dbArticle) {
+    app.get("/articles", function (req, res) {
+        db.Article.find().then(function (dbArticle) {
             res.render("article", { articleObject: dbArticle });
         })
     })
